@@ -3,24 +3,12 @@
 ## Setup
 
 1. Install java, for mac run: `brew cask install java`
-2. Install antlr4
-3. For mac users:
+2. Install antlr4 referring to the [tutorial](https:*tomassetti.me/antlr-mega-tutorial/#setup-antlr)
+3. After installing **antlr4** run: `antlr4 -Dlanguage=JavaScript -lib grammars -o lib -visitor -Xexact-output-dir grammars/ECMAScript.g40`
+4. your grammar is in _**grammars**_ folder and inside your **_lib_** you can find:
 
-- `curl -O http:*www.antlr.org/download/antlr-4.7.1-complete.jar`
-- `sudo cp antlr-4.7.1-complete.jar /usr/local/lib/`
-- run `npm run setup` inside root folder
-- in case that wouldn't work refer to the [tutorial](https:*tomassetti.me/antlr-mega-tutorial/#setup-antlr)
+- ECMAScriptLexer.js splits a source code character stream into a token stream according to the rules specified in the grammar.
+- ECMAScriptParser.js generates an abstract connected tree structure (i.e. parse tree) from the token stream.
+- ECMAScriptVisitor.js is responsible for traversing the generated tree. Technically, we could manually process the tree by depth-first recursive traversal of children. However, if we have a large number of node types and complex processing logic, it is preferable to visit each node type using its special predefined method, as visitor does.
 
-4. For win users:
-
-- Copy antlr-4.7.1-complete.jar in C:\Program Files\Java\libs (or wherever you prefer)
-- Create or append to the CLASSPATH variable the location of antlr
-  you can do to that by pressing WIN + R and typing sysdm.cpl, then selecting Advanced (tab) > Environment variables > System Variables
-  CLASSPATH -> .;C:\Program Files\Java\libs\antlr-4.7.1-complete.jar;%CLASSPATH%
-- Add aliases create antlr4.bat java org.antlr.v4.Tool %_
-  create grun.bat java org.antlr.v4.gui.TestRig %_ put them in the system PATH or any of the directories included in your PATH
-  
-5. Inside root folder run `npm i`
-6. Then `
-
-***
+---
