@@ -1,0 +1,19 @@
+{
+  "name": "js-runtime",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "npm run set-class && npm run set-antlr && npm run set-grun",
+    "antlr4-js": "antlr4 -Dlanguage=JavaScript -lib grammars -o lib -visitor -Xexact-output-dir grammars/ECMAScript.g4",
+    "set-class": "export CLASSPATH=\".:/usr/local/lib/antlr-4.7.1-complete.jar:$CLASSPATH\"",
+    "set-antlr": "alias antlr4=\"java -Xmx500M -cp '/usr/local/lib/antlr-4.7.1-complete.jar:$CLASSPATH' org.antlr.v4.Tool\"",
+    "set-grun": "alias grun='java org.antlr.v4.gui.TestRig'"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "antlr4": "^4.7.2"
+  }
+}
