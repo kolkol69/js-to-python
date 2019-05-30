@@ -32,7 +32,7 @@ class Visitor extends ECMAScriptVisitor {
     let code = "";
 
     for (let i = 0; i < ctx.getChildCount(); i++) {
-      console.log(">>>code", this.visit(ctx.getChild(i)));
+      // console.log(">>>code", this.visit(ctx.getChild(i)));
       code += this.visit(ctx.getChild(i));
       if (code === "function") code += " ";
     }
@@ -66,7 +66,7 @@ class Visitor extends ECMAScriptVisitor {
     const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
     const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
 
-    return `'${key}': ${value}`;
+    return `'${key}': ${value}`; // { x : 1}
   }
 
   // /**
@@ -101,29 +101,11 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFunctionExpression(ctx) {
-    // console.log(ctx.getText(), "visitFunctionDeclaration -> getText"); // Return the text of all tokens in the stream
-    // console.log(
-    // ctx.getChildCount(),
-    // "visitFunctionDeclaration -> getChildCount"
-    // ); // How many children are there? If there is none, then this node represents a leaf node
-    // console.log(ctx.getChild(0).getText()); // console.log(ctx.propertyName().getText()) Property 'x'
-    // console.log(ctx.getChild(1).getText()); // ':'
-    // console.log(ctx.getChild(2).getText()); // console.log(ctx.singleExpression().getText()) Value '1'
-
-    // const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
-    // const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
-    console.log(ctx.getChild(0).getText(), "child 0");
-    console.log(ctx.getChild(1).getText(), "child 1");
-    console.log(ctx.getChild(2).getText(), "child 2");
-    console.log(ctx.getChild(3).getText(), "child 3");
-    console.log(ctx.getChild(4).getText(), "child 4");
-    console.log(ctx.getChild(5).getText(), "child 5");
-    console.log(ctx.getChild(6).getText(), "child 6");
     const functionName = ctx.getChild(1).getText();
+    const params = this.visit(ctx.formalParameterList());
+    const body = this.visit(ctx.functionBody());
 
-    return `def ${functionName}(${this.visitFormalParameterList(
-      ctx
-    )}):\n\t${this.visitFunctionBody(ctx)}`;
+    return `def ${functionName}(${params}):\n\t${body}`;
   }
   /**
    * Visits Function Declaration
@@ -165,7 +147,7 @@ class Visitor extends ECMAScriptVisitor {
     // const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
     // const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
 
-    return `params`;
+    return ctx.getText();
   }
 
   /**
@@ -175,8 +157,8 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFunctionBody(ctx) {
-    console.log(ctx.getText(), "visitFunctionBody -> getText"); // Return the text of all tokens in the stream
-    console.log(ctx.getChildCount(), "visitFunctionBody -> getChildCount"); // How many children are there? If there is none, then this node represents a leaf node
+    // console.log(ctx.getText(), "visitFunctionBody -> getText"); // Return the text of all tokens in the stream
+    // console.log(ctx.getChildCount(), "visitFunctionBody -> getChildCount"); // How many children are there? If there is none, then this node represents a leaf node
     // console.log(ctx.getChild(0).getText()); // console.log(ctx.propertyName().getText()) Property 'x'
     // console.log(ctx.getChild(1).getText()); // ':'
     // console.log(ctx.getChild(2).getText()); // console.log(ctx.singleExpression().getText()) Value '1'
@@ -184,7 +166,7 @@ class Visitor extends ECMAScriptVisitor {
     // const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
     // const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
 
-    return `body`;
+    return ctx.getText();
   }
 
   /**
