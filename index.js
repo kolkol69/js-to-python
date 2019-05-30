@@ -1,7 +1,7 @@
 const antlr4 = require("antlr4");
 const ECMAScriptLexer = require("./lib/ECMAScriptLexer.js");
 const ECMAScriptParser = require("./lib/ECMAScriptParser.js");
-const PythonGenerator = require("./codegeneration/PythonGenerator");
+const PythonGenerator = require("./codegeneration/PythonGenerator.1");
 
 const input = `function create(){ 
   b = a;
