@@ -3,7 +3,9 @@ const ECMAScriptLexer = require("./lib/ECMAScriptLexer.js");
 const ECMAScriptParser = require("./lib/ECMAScriptParser.js");
 const PythonGenerator = require("./codegeneration/PythonGenerator");
 
-const input = "{x: 1}";
+const input = `function create(){ 
+  b = a;
+}`;
 
 const chars = new antlr4.InputStream(input);
 const lexer = new ECMAScriptLexer.ECMAScriptLexer(chars);
