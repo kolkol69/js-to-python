@@ -1,289 +1,240 @@
 /*
-* The MIT License (MIT)
-*
-* Copyright (c) 2014 by Bart Kiers
-*
-* Permission is hereby granted, free of charge, to any person
-* obtaining a copy of this software and associated documentation
-* files (the "Software"), to deal in the Software without
-* restriction, including without limitation the rights to use,
-* copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the
-* Software is furnished to do so, subject to the following
-* conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-* OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-* HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-* OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 by Bart Kiers
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Project      : ecmascript-parser; an ANTLR4 grammar for ECMAScript
+ *                https://github.com/bkiers/ecmascript-parser
+ * Developed by : Bart Kiers, bart@big-o.nl
+ */
 grammar ECMAScript;
 
 @parser::members {
+/**
+ * Returns true if, on the current index of the parser's token stream,
+ * a token of the given type exists on the HIDDEN channel.
+ * @param type {Number} The type of the token on the HIDDEN channel to check.
+ * @returns {Boolean}
+ */
+ECMAScriptParser.prototype.here = function(type) {
+    var possibleIndexEosToken = antlr4.Parser.prototype.getCurrentToken.call(this).tokenIndex - 1;
+    var ahead = this._input.get(possibleIndexEosToken);
+    return (ahead.channel == antlr4.Lexer.HIDDEN) && (ahead.type == type);
+};
 
 /**
-* Returns {@code true} iff on the current index of the parser's
-* token stream a token of the given {@code type} exists on the
-* {@code HIDDEN} channel.
-*
-* @param type
-* the type of the token on the {@code HIDDEN} channel
-* to check.
-*
-* @return {@code true} iff on the current index of the parser's
-* token stream a token of the given {@code type} exists on the
-* {@code HIDDEN} channel.
-*/
-private boolean here(final int type) {
-
-// Get the token ahead of the current index.
-int possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 1;
-Token ahead = _input.get(possibleIndexEosToken);
-
-// Check if the token resides on the HIDDEN channel and if it's of the
-// provided type.
-return (ahead.getChannel() == Lexer.HIDDEN) && (ahead.getType() == type);
-}
-
-/**
-* Returns {@code true} iff on the current index of the parser's
-* token stream a token exists on the {@code HIDDEN} channel which
-* either is a line terminator, or is a multi line comment that
-* contains a line terminator.
-*
-* @return {@code true} iff on the current index of the parser's
-* token stream a token exists on the {@code HIDDEN} channel which
-* either is a line terminator, or is a multi line comment that
-* contains a line terminator.
-*/
-private boolean lineTerminatorAhead() {
-
-// Get the token ahead of the current index.
-int possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 1;
-Token ahead = _input.get(possibleIndexEosToken);
-
-if (ahead.getChannel() != Lexer.HIDDEN) {
-// We're only interested in tokens on the HIDDEN channel.
-return false;
-}
-
-if (ahead.getType() == LineTerminator) {
-// There is definitely a line terminator ahead.
-return true;
-}
-
-if (ahead.getType() == WhiteSpaces) {
-// Get the token ahead of the current whitespaces.
-possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 2;
-ahead = _input.get(possibleIndexEosToken);
-}
-
-// Get the token's text and type.
-String text = ahead.getText();
-int type = ahead.getType();
-
-// Check if the token is, or contains a line terminator.
-return (type == MultiLineComment && (text.contains("\r") || text.contains("\n"))) ||
-(type == LineTerminator);
-}
+ * Returns true if, on the current index of the parser's
+ * token stream, a token exists on the HIDDEN channel which
+ * either is a line terminator, or is a multi line comment that
+ * contains a line terminator.
+ * @returns {Boolean}
+ */
+ECMAScriptParser.prototype.lineTerminatorAhead = function() {
+    var possibleIndexEosToken = antlr4.Parser.prototype.getCurrentToken.call(this).tokenIndex - 1;
+    var ahead = this._input.get(possibleIndexEosToken);
+    if (ahead.channel != antlr4.Lexer.HIDDEN)
+        return false;
+    var text = ahead.text;
+    var type = ahead.type;
+    return (type == ECMAScriptParser.MultiLineComment && text.indexOf("\r") !== -1 || text.indexOf("\n") !== -1) ||
+            (type == ECMAScriptParser.LineTerminator);
+};
 }
 
 @lexer::members {
-
-// A flag indicating if the lexer should operate in strict mode.
-// When set to true, FutureReservedWords are tokenized, when false,
-// an octal literal can be tokenized.
-private boolean strictMode = true;
-
-// The most recently produced token.
-private Token lastToken = null;
+ECMAScriptLexer.prototype.strictMode = true;
+ECMAScriptLexer.prototype.lastToken = null;
+/**
+ * @returns {Boolean} Returns true if the lexer operates in strict mode.
+ */
+ECMAScriptLexer.prototype.getStrictMode = function() {
+    return this.strictMode;
+};
 
 /**
-* Returns {@code true} iff the lexer operates in strict mode.
-*
-* @return {@code true} iff the lexer operates in strict mode.
-*/
-public boolean getStrictMode() {
-return this.strictMode;
-}
+ * Sets whether the lexer operates in strict mode or not.
+ *
+ * @param strictMode {Boolean} The flag indicating the lexer operates in strict mode or not.
+ */
+ECMAScriptLexer.prototype.setStrictMode = function(strictMode) {
+    this.strictMode = strictMode;
+};
 
 /**
-* Sets whether the lexer operates in strict mode or not.
-*
-* @param strictMode
-* the flag indicating the lexer operates in strict mode or not.
-*/
-public void setStrictMode(boolean strictMode) {
-this.strictMode = strictMode;
-}
+ * Return the next token from the character stream and records this last
+ * token in case it resides on the default channel. This recorded token
+ * is used to determine when the lexer could possibly match a regex
+ * literal.
+ *
+ */
+ECMAScriptLexer.prototype.nextToken = function() {
+    var next = antlr4.Lexer.prototype.nextToken.call(this);
+    if (next.channel == antlr4.Token.DEFAULT_CHANNEL)
+        this.lastToken = next;
+    return next;
+};
 
 /**
-* Return the next token from the character stream and records this last
-* token in case it resides on the default channel. This recorded token
-* is used to determine when the lexer could possibly match a regex
-* literal.
-*
-* @return the next token from the character stream.
-*/
-@Override
-public Token nextToken() {
-
-// Get the next token.
-Token next = super.nextToken();
-
-if (next.getChannel() == Token.DEFAULT_CHANNEL) {
-// Keep track of the last token on the default channel.
-this.lastToken = next;
-}
-
-return next;
-}
-
-/**
-* Returns {@code true} iff the lexer can match a regex literal.
-*
-* @return {@code true} iff the lexer can match a regex literal.
-*/
-private boolean isRegexPossible() {
-
-if (this.lastToken == null) {
-// No token has been produced yet: at the start of the input,
-// no division is possible, so a regex literal _is_ possible.
-return true;
-}
-
-switch (this.lastToken.getType()) {
-case Identifier:
-case NullLiteral:
-case BooleanLiteral:
-case This:
-case CloseBracket:
-case CloseParen:
-case OctalIntegerLiteral:
-case DecimalLiteral:
-case HexIntegerLiteral:
-case StringLiteral:
-case PlusPlus:
-case MinusMinus:
-// After any of the tokens above, no regex literal can follow.
-return false;
-default:
-// In all other cases, a regex literal _is_ possible.
-return true;
-}
-}
+ * @returns {Boolean} Returns true if the lexer can match a regex literal.
+ */
+ECMAScriptLexer.prototype.isRegexPossible = function() {
+    if (this.lastToken == null)
+        return true;
+    switch (this.lastToken.type) {
+        case ECMAScriptLexer.Identifier:
+            return false;
+        case ECMAScriptLexer.NullLiteral:
+            return false;
+        case ECMAScriptLexer.BooleanLiteral:
+            return false;
+        case ECMAScriptLexer.This:
+            return false;
+        case ECMAScriptLexer.CloseBracket:
+            return false;
+        case ECMAScriptLexer.CloseParen:
+            return false;
+        case ECMAScriptLexer.OctalIntegerLiteral:
+            return false;
+        case ECMAScriptLexer.DecimalLiteral:
+            return false;
+        case ECMAScriptLexer.HexIntegerLiteral:
+            return false;
+        case ECMAScriptLexer.StringLiteral:
+            return false;
+        case ECMAScriptLexer.PlusPlus:
+            return false;
+        case ECMAScriptLexer.MinusMinus:
+            return false;
+        default:
+            return true;
+    }
+};
 }
 
 /// Program :
-/// SourceElements?
+///     SourceElements?
 program
-: sourceElements? EOF
-;
+ : sourceElements? EOF
+ ;
 
 /// SourceElements :
-/// SourceElement
-/// SourceElements SourceElement
+///     SourceElement
+///     SourceElements SourceElement
 sourceElements
-: sourceElement+
-;
+ : sourceElement+
+ ;
 
 /// SourceElement :
-/// Statement
-/// FunctionDeclaration
+///     Statement
+///     FunctionDeclaration
 sourceElement
-: statement
-| functionDeclaration
-;
+ : statement
+ | functionDeclaration
+ ;
 
 /// Statement :
-/// Block
-/// VariableStatement
-/// EmptyStatement
-/// ExpressionStatement
-/// IfStatement
-/// IterationStatement
-/// ContinueStatement
-/// BreakStatement
-/// ReturnStatement
-/// WithStatement
-/// LabelledStatement
-/// SwitchStatement
-/// ThrowStatement
-/// TryStatement
-/// DebuggerStatement
+///     Block
+///     VariableStatement
+///     EmptyStatement
+///     ExpressionStatement
+///     IfStatement
+///     IterationStatement
+///     ContinueStatement
+///     BreakStatement
+///     ReturnStatement
+///     WithStatement
+///     LabelledStatement
+///     SwitchStatement
+///     ThrowStatement
+///     TryStatement
+///     DebuggerStatement
 statement
-: block
-| variableStatement
-| emptyStatement
-| expressionStatement
-| ifStatement
-| iterationStatement
-| continueStatement
-| breakStatement
-| returnStatement
-| withStatement
-| labelledStatement
-| switchStatement
-| throwStatement
-| tryStatement
-| debuggerStatement
-;
+ : block
+ | variableStatement
+ | emptyStatement
+ | expressionStatement
+ | ifStatement
+ | iterationStatement
+ | continueStatement
+ | breakStatement
+ | returnStatement
+ | withStatement
+ | labelledStatement
+ | switchStatement
+ | throwStatement
+ | tryStatement
+ | debuggerStatement
+ ;
 
 /// Block :
-/// { StatementList? }
+///     { StatementList? }
 block
-: '{' statementList? '}'
-;
+ : '{' statementList? '}'
+ ;
 
 /// StatementList :
-/// Statement
-/// StatementList Statement
+///     Statement
+///     StatementList Statement
 statementList
-: statement+
-;
+ : statement+
+ ;
 
 /// VariableStatement :
-/// var VariableDeclarationList ;
+///     var VariableDeclarationList ;
 variableStatement
-: Var variableDeclarationList eos
-;
+ : Var variableDeclarationList eos
+ ;
 
 /// VariableDeclarationList :
-/// VariableDeclaration
-/// VariableDeclarationList , VariableDeclaration
+///     VariableDeclaration
+///     VariableDeclarationList , VariableDeclaration
 variableDeclarationList
-: variableDeclaration ( ',' variableDeclaration )*
-;
+ : variableDeclaration ( ',' variableDeclaration )*
+ ;
 
 /// VariableDeclaration :
-/// Identifier Initialiser?
+///     Identifier Initialiser?
 variableDeclaration
-: Identifier initialiser?
-;
+ : Identifier initialiser?
+ ;
 
 /// Initialiser :
-/// = AssignmentExpression
+///     = AssignmentExpression
 initialiser
-: '=' singleExpression
-;
+ : '=' singleExpression
+ ;
 
 /// EmptyStatement :
-/// ;
+///     ;
 emptyStatement
-: SemiColon
-;
+ : SemiColon
+ ;
 
 /// ExpressionStatement :
-/// [lookahead ∉ {{, function}] Expression ;
+///     [lookahead ∉ {{, function}] Expression ;
 expressionStatement
- : {(_input.LA(1) != OpenBrace) && (_input.LA(1) != Function)}? expressionSequence eos
+ : expressionSequence
  ;
 
 /// IfStatement :
@@ -313,21 +264,21 @@ iterationStatement
 ///     continue ;
 ///     continue [no LineTerminator here] Identifier ;
 continueStatement
- : Continue ({!here(LineTerminator)}? Identifier)? eos
+ : Continue ({!this.here(ECMAScriptParser.LineTerminator)}? Identifier)? eos
  ;
 
 /// BreakStatement :
 ///     break ;
 ///     break [no LineTerminator here] Identifier ;
 breakStatement
- : Break ({!here(LineTerminator)}? Identifier)? eos
+ : Break ({!this.here(ECMAScriptParser.LineTerminator)}? Identifier)? eos
  ;
 
 /// ReturnStatement :
 ///     return ;
 ///     return [no LineTerminator here] Expression ;
 returnStatement
- : Return ({!here(LineTerminator)}? expressionSequence)? eos
+ : Return ({!this.here(ECMAScriptParser.LineTerminator)}? expressionSequence)? eos
  ;
 
 /// WithStatement :
@@ -377,7 +328,7 @@ labelledStatement
 /// ThrowStatement :
 ///     throw [no LineTerminator here] Expression ;
 throwStatement
- : Throw {!here(LineTerminator)}? expressionSequence eos
+ : Throw {!this.here(ECMAScriptParser.LineTerminator)}? expressionSequence eos
  ;
 
 /// TryStatement :
@@ -426,7 +377,7 @@ formalParameterList
 functionBody
  : sourceElements?
  ;
-    
+
 /// ArrayLiteral :
 ///     [ Elision? ]
 ///     [ ElementList ]
@@ -464,7 +415,7 @@ objectLiteral
 propertyNameAndValueList
  : propertyAssignment ( ',' propertyAssignment )*
  ;
-    
+
 /// PropertyAssignment :
 ///     PropertyName : AssignmentExpression
 ///     get PropertyName ( ) { FunctionBody }
@@ -473,8 +424,8 @@ propertyAssignment
  : propertyName ':' singleExpression                            # PropertyExpressionAssignment
  | getter '(' ')' '{' functionBody '}'                          # PropertyGetter
  | setter '(' propertySetParameterList ')' '{' functionBody '}' # PropertySetter
- ;           
-    
+ ;
+
 /// PropertyName :
 ///     IdentifierName
 ///     StringLiteral
@@ -484,7 +435,7 @@ propertyName
  | StringLiteral
  | numericLiteral
  ;
-    
+
 /// PropertySetParameterList :
 ///     Identifier
 propertySetParameterList
@@ -497,14 +448,14 @@ propertySetParameterList
 arguments
  : '(' argumentList? ')'
  ;
-    
+
 /// ArgumentList :
 ///     AssignmentExpression
 ///     ArgumentList , AssignmentExpression
 argumentList
  : singleExpression ( ',' singleExpression )*
  ;
-    
+
 /// Expression :
 ///     AssignmentExpression
 ///     Expression , AssignmentExpression
@@ -551,7 +502,7 @@ argumentList
 ///     RelationalExpression > ShiftExpression
 ///     RelationalExpression <= ShiftExpression
 ///     RelationalExpression >= ShiftExpression
-///     RelationalExpression instanceof ShiftExpression 
+///     RelationalExpression instanceof ShiftExpression
 ///     RelationalExpression in ShiftExpression
 ///
 /// ShiftExpression :
@@ -559,7 +510,7 @@ argumentList
 ///     ShiftExpression << AdditiveExpression
 ///     ShiftExpression >> AdditiveExpression
 ///     ShiftExpression >>> AdditiveExpression
-/// 
+///
 /// AdditiveExpression :
 ///     MultiplicativeExpression
 ///     AdditiveExpression + MultiplicativeExpression
@@ -630,8 +581,8 @@ singleExpression
  | singleExpression '.' identifierName                                    # MemberDotExpression
  | singleExpression arguments                                             # ArgumentsExpression
  | New singleExpression arguments?                                        # NewExpression
- | singleExpression {!here(LineTerminator)}? '++'                         # PostIncrementExpression
- | singleExpression {!here(LineTerminator)}? '--'                         # PostDecreaseExpression
+ | singleExpression {!this.here(ECMAScriptParser.LineTerminator)}? '++'                         # PostIncrementExpression
+ | singleExpression {!this.here(ECMAScriptParser.LineTerminator)}? '--'                         # PostDecreaseExpression
  | Delete singleExpression                                                # DeleteExpression
  | Void singleExpression                                                  # VoidExpression
  | Typeof singleExpression                                                # TypeofExpression
@@ -654,10 +605,11 @@ singleExpression
  | singleExpression '&&' singleExpression                                 # LogicalAndExpression
  | singleExpression '||' singleExpression                                 # LogicalOrExpression
  | singleExpression '?' singleExpression ':' singleExpression             # TernaryExpression
- | singleExpression '=' singleExpression                                  # AssignmentExpression
- | singleExpression assignmentOperator singleExpression                   # AssignmentOperatorExpression
+ | singleExpression '=' expressionSequence                                # AssignmentExpression
+ | singleExpression assignmentOperator expressionSequence                 # AssignmentOperatorExpression
  | This                                                                   # ThisExpression
  | Identifier                                                             # IdentifierExpression
+ | Number arguments                                                       # NumberExpression
  | literal                                                                # LiteralExpression
  | arrayLiteral                                                           # ArrayLiteralExpression
  | objectLiteral                                                          # ObjectLiteralExpression
@@ -667,21 +619,21 @@ singleExpression
 /// AssignmentOperator : one of
 ///     *=	/=	%=	+=	-=	<<=	>>=	>>>=	&=	^=	|=
 assignmentOperator
- : '*=' 
- | '/=' 
- | '%=' 
- | '+=' 
- | '-=' 
- | '<<=' 
- | '>>=' 
- | '>>>=' 
- | '&=' 
- | '^=' 
+ : '*='
+ | '/='
+ | '%='
+ | '+='
+ | '-='
+ | '<<='
+ | '>>='
+ | '>>>='
+ | '&='
+ | '^='
  | '|='
  ;
 
 literal
- : ( NullLiteral 
+ : ( NullLiteral
    | BooleanLiteral
    | StringLiteral
    | RegularExpressionLiteral
@@ -757,18 +709,18 @@ futureReservedWord
  ;
 
 getter
- : {_input.LT(1).getText().equals("get")}? Identifier propertyName
+ : {this._input.LT(1).text.startsWith("get")}? Identifier propertyName
  ;
 
 setter
- : {_input.LT(1).getText().equals("set")}? Identifier propertyName
+ : {this._input.LT(1).text.startsWith("set")}? Identifier propertyName
  ;
 
 eos
  : SemiColon
  | EOF
- | {lineTerminatorAhead()}?
- | {_input.LT(1).getType() == CloseBrace}?
+ | {this.lineTerminatorAhead()}?
+ | {this._input.LT(1).type == ECMAScriptParser.CloseBrace}?
  ;
 
 eof
@@ -778,7 +730,7 @@ eof
 /// RegularExpressionLiteral ::
 ///     / RegularExpressionBody / RegularExpressionFlags
 RegularExpressionLiteral
- : {isRegexPossible()}? '/' RegularExpressionBody '/' RegularExpressionFlags
+ : {this.isRegexPossible()}? '/' RegularExpressionBody '/' RegularExpressionFlags
  ;
 
 /// 7.3 Line Terminators
@@ -824,15 +776,15 @@ BitOr                      : '|';
 And                        : '&&';
 Or                         : '||';
 MultiplyAssign             : '*=';
-DivideAssign               : '/='; 
-ModulusAssign              : '%='; 
-PlusAssign                 : '+='; 
-MinusAssign                : '-='; 
-LeftShiftArithmeticAssign  : '<<='; 
-RightShiftArithmeticAssign : '>>='; 
-RightShiftLogicalAssign    : '>>>='; 
-BitAndAssign               : '&='; 
-BitXorAssign               : '^='; 
+DivideAssign               : '/=';
+ModulusAssign              : '%=';
+PlusAssign                 : '+=';
+MinusAssign                : '-=';
+LeftShiftArithmeticAssign  : '<<=';
+RightShiftArithmeticAssign : '>>=';
+RightShiftLogicalAssign    : '>>>=';
+BitAndAssign               : '&=';
+BitXorAssign               : '^=';
 BitOrAssign                : '|=';
 
 /// 7.8.1 Null Literals
@@ -859,7 +811,7 @@ HexIntegerLiteral
  ;
 
 OctalIntegerLiteral
- : {!strictMode}? '0' OctalDigit+
+ : {!this.strictMode}? '0' OctalDigit+
  ;
 
 /// 7.6.1.1 Keywords
@@ -889,6 +841,7 @@ Throw      : 'throw';
 Delete     : 'delete';
 In         : 'in';
 Try        : 'try';
+Number     : 'Number';
 
 /// 7.6.1.2 Future Reserved Words
 Class   : 'class';
@@ -899,17 +852,17 @@ Const   : 'const';
 Export  : 'export';
 Import  : 'import';
 
-/// The following tokens are also considered to be FutureReservedWords 
-/// when parsing strict mode  
-Implements : {strictMode}? 'implements';
-Let        : {strictMode}? 'let';
-Private    : {strictMode}? 'private';
-Public     : {strictMode}? 'public';
-Interface  : {strictMode}? 'interface';
-Package    : {strictMode}? 'package';
-Protected  : {strictMode}? 'protected';
-Static     : {strictMode}? 'static';
-Yield      : {strictMode}? 'yield';
+/// The following tokens are also considered to be FutureReservedWords
+/// when parsing strict mode
+Implements : {this.strictMode}? 'implements';
+Let        : {this.strictMode}? 'let';
+Private    : {this.strictMode}? 'private';
+Public     : {this.strictMode}? 'public';
+Interface  : {this.strictMode}? 'interface';
+Package    : {this.strictMode}? 'package';
+Protected  : {this.strictMode}? 'protected';
+Static     : {this.strictMode}? 'static';
+Yield      : {this.strictMode}? 'yield';
 
 /// 7.6 Identifier Names and Identifiers
 Identifier
@@ -944,33 +897,27 @@ fragment DoubleStringCharacter
  | '\\' EscapeSequence
  | LineContinuation
  ;
-
 fragment SingleStringCharacter
  : ~['\\\r\n]
  | '\\' EscapeSequence
  | LineContinuation
  ;
-
 fragment EscapeSequence
  : CharacterEscapeSequence
  | '0' // no digit ahead! TODO
  | HexEscapeSequence
  | UnicodeEscapeSequence
  ;
-
 fragment CharacterEscapeSequence
  : SingleEscapeCharacter
  | NonEscapeCharacter
  ;
-
 fragment HexEscapeSequence
  : 'x' HexDigit HexDigit
  ;
-
 fragment UnicodeEscapeSequence
  : 'u' HexDigit HexDigit HexDigit HexDigit
  ;
-
 fragment SingleEscapeCharacter
  : ['"\\bfnrtv]
  ;
@@ -978,49 +925,39 @@ fragment SingleEscapeCharacter
 fragment NonEscapeCharacter
  : ~['"\\bfnrtv0-9xu\r\n]
  ;
-
 fragment EscapeCharacter
  : SingleEscapeCharacter
  | DecimalDigit
  | [xu]
  ;
-
 fragment LineContinuation
- : '\\' LineTerminatorSequence 
+ : '\\' LineTerminatorSequence
  ;
-
 fragment LineTerminatorSequence
  : '\r\n'
  | LineTerminator
  ;
-
 fragment DecimalDigit
  : [0-9]
  ;
-
 fragment HexDigit
  : [0-9a-fA-F]
  ;
-
 fragment OctalDigit
  : [0-7]
  ;
-
 fragment DecimalIntegerLiteral
  : '0'
  | [1-9] DecimalDigit*
  ;
-
 fragment ExponentPart
  : [eE] [+-]? DecimalDigit+
  ;
-
 fragment IdentifierStart
  : UnicodeLetter
  | [$_]
  | '\\' UnicodeEscapeSequence
  ;
-
 fragment IdentifierPart
  : IdentifierStart
  | UnicodeCombiningMark
@@ -1029,7 +966,6 @@ fragment IdentifierPart
  | ZWNJ
  | ZWJ
  ;
-
 fragment UnicodeLetter
  : [\u0041-\u005A]
  | [\u0061-\u007A]
@@ -1293,7 +1229,6 @@ fragment UnicodeLetter
  | [\uFFD2-\uFFD7]
  | [\uFFDA-\uFFDC]
  ;
-
 fragment UnicodeCombiningMark
  : [\u0300-\u034E]
  | [\u0360-\u0362]
@@ -1301,7 +1236,7 @@ fragment UnicodeCombiningMark
  | [\u0591-\u05A1]
  | [\u05A3-\u05B9]
  | [\u05BB-\u05BD]
- | [\u05BF] 
+ | [\u05BF]
  | [\u05C1-\u05C2]
  | [\u05C4]
  | [\u064B-\u0655]
@@ -1396,7 +1331,6 @@ fragment UnicodeCombiningMark
  | [\uFB1E]
  | [\uFE20-\uFE23]
  ;
-
 fragment UnicodeDigit
  : [\u0030-\u0039]
  | [\u0660-\u0669]
@@ -1419,7 +1353,6 @@ fragment UnicodeDigit
  | [\u1810-\u1819]
  | [\uFF10-\uFF19]
  ;
-
 fragment UnicodeConnectorPunctuation
  : [\u005F]
  | [\u203F-\u2040]
@@ -1429,15 +1362,12 @@ fragment UnicodeConnectorPunctuation
  | [\uFF3F]
  | [\uFF65]
  ;
-
 fragment ZWNJ
  : '\u200C'
  ;
-
 fragment ZWJ
  : '\u200D'
  ;
-
 /// RegularExpressionBody ::
 ///     RegularExpressionFirstChar RegularExpressionChars
 ///
@@ -1447,14 +1377,12 @@ fragment ZWJ
 fragment RegularExpressionBody
  : RegularExpressionFirstChar RegularExpressionChar*
  ;
-
 /// RegularExpressionFlags ::
 ///     [empty]
 ///     RegularExpressionFlags IdentifierPart
 fragment RegularExpressionFlags
  : IdentifierPart*
  ;
-
 /// RegularExpressionFirstChar ::
 ///     RegularExpressionNonTerminator but not one of * or \ or / or [
 ///     RegularExpressionBackslashSequence
@@ -1464,7 +1392,6 @@ fragment RegularExpressionFirstChar
  | RegularExpressionBackslashSequence
  | RegularExpressionClass
  ;
-
 /// RegularExpressionChar ::
 ///     RegularExpressionNonTerminator but not \ or / or [
 ///     RegularExpressionBackslashSequence
@@ -1474,19 +1401,17 @@ fragment RegularExpressionChar
  | RegularExpressionBackslashSequence
  | RegularExpressionClass
  ;
-
 /// RegularExpressionNonTerminator ::
 ///     SourceCharacter but not LineTerminator
 fragment RegularExpressionNonTerminator
  : ~[\r\n\u2028\u2029]
  ;
-
 /// RegularExpressionBackslashSequence ::
 ///     \ RegularExpressionNonTerminator
 fragment RegularExpressionBackslashSequence
  : '\\' RegularExpressionNonTerminator
  ;
- 
+
 /// RegularExpressionClass ::
 ///     [ RegularExpressionClassChars ]
 ///
@@ -1496,7 +1421,7 @@ fragment RegularExpressionBackslashSequence
 fragment RegularExpressionClass
   : '[' RegularExpressionClassChar* ']'
   ;
- 
+
 /// RegularExpressionClassChar ::
 ///     RegularExpressionNonTerminator but not ] or \
 ///     RegularExpressionBackslashSequence
