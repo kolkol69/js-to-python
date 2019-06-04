@@ -12,3 +12,6 @@
 - ECMAScriptVisitor.js is responsible for traversing the generated tree. Technically, we could manually process the tree by depth-first recursive traversal of children. However, if we have a large number of node types and complex processing logic, it is preferable to visit each node type using its special predefined method, as visitor does.
 
 ---
+useful links:
+1. https://stackoverflow.com/questions/54816560/how-to-build-a-javascript-antlr-visitor
+2. https://habr.com/ru/post/351906/#Codegeneration
