@@ -46,7 +46,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitTerminal(ctx) {
-    console.log("visitTerminal");
+    // console.log("visitTerminal");
     return ctx.getText();
   }
 
@@ -69,7 +69,6 @@ class Visitor extends ECMAScriptVisitor {
 
     return `'${key}': ${value}`; // { x : 1}
   }
-
 
   /**
    * Visits Function Declaration
@@ -130,7 +129,22 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitNumberExpression(ctx) {
-    console.log("visitNumberExpression");
+
+    // function getMethods(obj) {
+    //   var result = [];
+    //   for (var id in obj) {
+    //     try {
+    //       if (typeof(obj[id]) == "function") {
+    //         result.push(id + ": " + obj[id].toString());
+    //       }
+    //     } catch (err) {
+    //       result.push(id + ": inaccessible");
+    //     }
+    //   }
+    //   return result;
+    // }
+
+    // console.log("visitNumberExpression", getMethods(ctx));
     const argumentList = ctx.arguments().argumentList();
 
     if (argumentList === null || argumentList.getChildCount() !== 1) {
@@ -182,7 +196,7 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#variableStatement.
   visitVariableStatement(ctx) {
     console.log("visitVariableStatement");
-    return this.visitChildren(ctx);
+    return this.visit(ctx.variableDeclarationList());
   }
 
   // Visit a parse tree produced by ECMAScriptParser#variableDeclarationList.
@@ -524,6 +538,11 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#EqualityExpression.
   visitEqualityExpression(ctx) {
     console.log("visitEqualityExpression");
+    // console.log(ctx.getChild(1).getText())
+    // return '=='
+    // console.log(ctx.getChild(0).getText());
+    // console.log(ctx.getChild(1).getText());
+    // console.log(ctx.getChild(2).getText());
     return this.visitChildren(ctx);
   }
 
@@ -602,6 +621,7 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#IdentifierExpression.
   visitIdentifierExpression(ctx) {
     console.log("visitIdentifierExpression");
+    console.log();
     return this.visitChildren(ctx);
   }
 
