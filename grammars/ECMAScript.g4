@@ -161,7 +161,7 @@ block: '{' statementList? '}';
 statementList: statement+;
 
 /// VariableStatement : / var VariableDeclarationList ;
-variableStatement: Var variableDeclarationList eos;
+variableStatement: Var variableDeclarationList eos | Const variableDeclarationList eos | Let variableDeclarationList eos;
 
 /// VariableDeclarationList : / VariableDeclaration / VariableDeclarationList , VariableDeclaration
 variableDeclarationList:
@@ -194,8 +194,14 @@ iterationStatement:
 		ForStatement
 	| For '(' Var variableDeclarationList ';' expressionSequence? ';' expressionSequence? ')'
 		statement															# ForVarStatement
+	| For '(' Let variableDeclarationList ';' expressionSequence? ';' expressionSequence? ')'
+		statement															# ForLetStatement
+	| For '(' Const variableDeclarationList ';' expressionSequence? ';' expressionSequence? ')'
+		statement															# ForConstStatement
 	| For '(' singleExpression In expressionSequence ')' statement			# ForInStatement
-	| For '(' Var variableDeclaration In expressionSequence ')' statement	# ForVarInStatement;
+	| For '(' Var variableDeclaration In expressionSequence ')' statement	# ForVarInStatement
+	| For '(' Let variableDeclaration In expressionSequence ')' statement	# ForLetInStatement
+	| For '(' Const variableDeclaration In expressionSequence ')' statement	# ForConstInStatement;
 
 /// ContinueStatement : / continue ; / continue [no LineTerminator here] Identifier ;
 continueStatement:
@@ -418,6 +424,8 @@ keyword:
 	| Else
 	| New
 	| Var
+	| Const
+	| Let
 	| Catch
 	| Finally
 	| Return
@@ -442,11 +450,9 @@ futureReservedWord:
 	| Enum
 	| Extends
 	| Super
-	| Const
 	| Export
 	| Import
 	| Implements
-	| Let
 	| Private
 	| Public
 	| Interface
@@ -551,6 +557,8 @@ Case: 'case';
 Else: 'else';
 New: 'new';
 Var: 'var';
+Const: 'const';
+Let: 'let';
 Catch: 'catch';
 Finally: 'finally';
 Return: 'return';
@@ -576,13 +584,11 @@ Class: 'class';
 Enum: 'enum';
 Extends: 'extends';
 Super: 'super';
-Const: 'const';
 Export: 'export';
 Import: 'import';
 
 /// The following tokens are also considered to be FutureReservedWords / when parsing strict mode
 Implements: {this.strictMode}? 'implements';
-Let: {this.strictMode}? 'let';
 Private: {this.strictMode}? 'private';
 Public: {this.strictMode}? 'public';
 Interface: {this.strictMode}? 'interface';

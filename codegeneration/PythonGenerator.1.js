@@ -51,6 +51,39 @@ class Visitor extends ECMAScriptVisitor {
   }
 
   /**
+   * Removes quotes from string
+   *
+   * @param {String} str
+   * @returns {String}
+   */
+  removeQuotes(str) {
+    let newStr = str;
+
+    if (
+      (str.charAt(0) === '"' && str.charAt(str.length - 1) === '"') ||
+      (str.charAt(0) === "'" && str.charAt(str.length - 1) === "'")
+    ) {
+      newStr = str.substr(1, str.length - 2);
+    }
+
+    return newStr;
+  }
+
+  getMethods(obj) {
+    var result = [];
+    for (var id in obj) {
+      try {
+        if (typeof obj[id] == "function") {
+          result.push(id + ": " + obj[id].toString());
+        }
+      } catch (err) {
+        result.push(id + ": inaccessible");
+      }
+    }
+    return result;
+  }
+
+  /**
    * Visits Property Expression Assignment
    *
    * @param {object} ctx
@@ -62,11 +95,10 @@ class Visitor extends ECMAScriptVisitor {
     // console.log(ctx.getChildCount()); // How many children are there? If there is none, then this node represents a leaf node
     // console.log(ctx.getChild(0).getText()); // console.log(ctx.propertyName().getText()) Property 'x'
     // console.log(ctx.getChild(1).getText()); // ':'
-    // console.log(ctx.getChild(2).getText()); // console.log(ctx.singleExpression().getText()) Value '1'
-
+    // console.log(ctx.getChild(2).getText()); // console.log(ctx.f().getText()) Value '1'
+    // {x : new Number(1)}
     const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
     const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
-
     return `'${key}': ${value}`; // { x : 1}
   }
 
@@ -129,21 +161,6 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitNumberExpression(ctx) {
-
-    // function getMethods(obj) {
-    //   var result = [];
-    //   for (var id in obj) {
-    //     try {
-    //       if (typeof(obj[id]) == "function") {
-    //         result.push(id + ": " + obj[id].toString());
-    //       }
-    //     } catch (err) {
-    //       result.push(id + ": inaccessible");
-    //     }
-    //   }
-    //   return result;
-    // }
-
     // console.log("visitNumberExpression", getMethods(ctx));
     const argumentList = ctx.arguments().argumentList();
 
@@ -184,7 +201,7 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#block.
   visitBlock(ctx) {
     console.log("visitBlock");
-    return this.visitChildren(ctx);
+    return this.visitStatement(ctx.statementList());
   }
 
   // Visit a parse tree produced by ECMAScriptParser#statementList.
@@ -244,7 +261,14 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#WhileStatement.
   visitWhileStatement(ctx) {
     console.log("visitWhileStatement");
-    return this.visitChildren(ctx);
+    console.log(ctx.getChild(0).getText());
+    console.log(ctx.expressionSequence().getText());
+    // console.log(ctx.getChild(1).getText() )
+    // console.log(ctx.getChild(3).getText() )
+    return `while ${ctx.expressionSequence().getText()}: 
+    ${this.visit(ctx.statement())}
+    `
+    // return this.visitChildren(ctx);
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForStatement.
@@ -713,25 +737,6 @@ class Visitor extends ECMAScriptVisitor {
   visitEof(ctx) {
     console.log("visitEof");
     return this.visitChildren(ctx);
-  }
-
-  /**
-   * Removes quotes from string
-   *
-   * @param {String} str
-   * @returns {String}
-   */
-  removeQuotes(str) {
-    let newStr = str;
-
-    if (
-      (str.charAt(0) === '"' && str.charAt(str.length - 1) === '"') ||
-      (str.charAt(0) === "'" && str.charAt(str.length - 1) === "'")
-    ) {
-      newStr = str.substr(1, str.length - 2);
-    }
-
-    return newStr;
   }
 }
 
