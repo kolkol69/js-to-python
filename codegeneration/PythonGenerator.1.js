@@ -68,30 +68,6 @@ class Visitor extends ECMAScriptVisitor {
     return `'${key}': ${value}`; // { x : 1}
   }
 
-  // /**
-  //  * Visits If Statement
-  //  *
-  //  * @param {object} ctx
-  //  * @returns {string}
-  //  */
-  // visitIfStatement(ctx) {
-  //   console.log(ctx.getText(), "visitFunctionDeclaration -> getText"); // Return the text of all tokens in the stream
-  //   console.log(
-  //     ctx.getChildCount(),
-  //     "visitFunctionDeclaration -> getChildCount"
-  //   );
-
-  //   // console.log(ctx.getText()); // Return the text of all tokens in the stream
-  //   // console.log(ctx.getChildCount()); // How many children are there? If there is none, then this node represents a leaf node
-  //   // console.log(ctx.getChild(0).getText()); // console.log(ctx.propertyName().getText()) Property 'x'
-  //   // console.log(ctx.getChild(1).getText()); // ':'
-  //   // console.log(ctx.getChild(2).getText()); // console.log(ctx.singleExpression().getText()) Value '1'
-
-  //   // const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
-  //   // const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
-
-  //   // return ``;
-  // }
 
   /**
    * Visits Function Declaration
@@ -100,6 +76,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFunctionExpression(ctx) {
+    console.log("visitFunctionExpression");
     // console.log(ctx.children[0], "this.visitChildren(ctx)");
     // console.log(Object.values(ctx), "this.visitChildren(ctx)");
     // console.log(this.visitChildren(ctx), "this.visitChildren(ctx)");
@@ -117,6 +94,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFormalParameterList(ctx) {
+    console.log("visitFormalParameterList");
     return this.visitChildren(ctx);
   }
 
@@ -127,6 +105,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFunctionBody(ctx) {
+    console.log("visitFunctionBody");
     return this.visitChildren(ctx);
   }
 
@@ -137,6 +116,8 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitNewExpression(ctx) {
+    console.log("visitNewExpression");
+
     return this.visit(ctx.singleExpression());
   }
 
@@ -147,6 +128,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitNumberExpression(ctx) {
+    console.log("visitNumberExpression");
     const argumentList = ctx.arguments().argumentList();
 
     if (argumentList === null || argumentList.getChildCount() !== 1) {
