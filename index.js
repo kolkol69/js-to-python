@@ -6,9 +6,6 @@ const PythonGenerator = require("./codegeneration/PythonGenerator.1");
 const input = `function create(a){
   b = a;
 }`;
-// const input = `function create(a){
-//   b = a;
-// }`;
 
 const chars = new antlr4.InputStream(input);
 const lexer = new ECMAScriptLexer.ECMAScriptLexer(chars);
@@ -23,8 +20,7 @@ const tree = parser.expressionSequence();
 // console.log(tree.toStringTree(parser.ruleNames));
 console.log("JavaScript input:");
 console.log(input);
-console.log("Python output:");
-
+console.log("\n");
 const output = new PythonGenerator().start(tree);
-
-console.log(output);
+console.log("\nPython output:");
+console.log("", output);
