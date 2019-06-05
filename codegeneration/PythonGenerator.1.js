@@ -46,6 +46,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitTerminal(ctx) {
+    console.log("visitTerminal");
     return ctx.getText();
   }
 
@@ -56,6 +57,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitPropertyExpressionAssignment(ctx) {
+    console.log("visitPropertyExpressionAssignment");
     // console.log(ctx.getText()); // Return the text of all tokens in the stream
     // console.log(ctx.getChildCount()); // How many children are there? If there is none, then this node represents a leaf node
     // console.log(ctx.getChild(0).getText()); // console.log(ctx.propertyName().getText()) Property 'x'
