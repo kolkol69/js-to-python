@@ -3,9 +3,21 @@ const ECMAScriptLexer = require("./lib/ECMAScriptLexer.js");
 const ECMAScriptParser = require("./lib/ECMAScriptParser.js");
 const PythonGenerator = require("./codegeneration/PythonGenerator.1");
 
-const input = `if(a){
-  var a = 0;
-}`;
+const input = `
+for (i = 0; i < 10; i++) { 
+  text += 1
+}
+`;
+
+/**
+ * 
+ * 
+    for x in fruits:
+      print(x)
+
+    for x in range(6):
+      print(x)
+ */
 
 const chars = new antlr4.InputStream(input);
 const lexer = new ECMAScriptLexer.ECMAScriptLexer(chars);

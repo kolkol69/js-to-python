@@ -74,7 +74,8 @@ class Visitor extends ECMAScriptVisitor {
     for (var id in obj) {
       try {
         if (typeof obj[id] == "function") {
-          result.push(id + ": " + obj[id].toString());
+          result.push(id);
+          // result.push(id + ": " + obj[id].toString());
         }
       } catch (err) {
         result.push(id + ": inaccessible");
@@ -127,7 +128,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFormalParameterList(ctx) {
-    console.log("visitFormalParameterList");
+    console.log("visitFormalParameterList", ctx.getChild(0).getText());
     return this.visitChildren(ctx);
   }
 
@@ -195,13 +196,13 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#statement.
   visitStatement(ctx) {
     console.log("visitStatement");
-    return this.visitChildren(ctx);
+    return `\n\t${this.visitChildren(ctx)}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#block.
   visitBlock(ctx) {
     console.log("visitBlock");
-    return this.visitStatement(ctx.statementList());
+    return `${this.visitStatement(ctx.statementList())}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#statementList.
@@ -265,16 +266,31 @@ class Visitor extends ECMAScriptVisitor {
     console.log(ctx.expressionSequence().getText());
     // console.log(ctx.getChild(1).getText() )
     // console.log(ctx.getChild(3).getText() )
-    return `while ${ctx.expressionSequence().getText()}: 
-    ${this.visit(ctx.statement())}
-    `
+    return `while ${ctx.expressionSequence().getText()}:${this.visit(
+      ctx.statement()
+    )}
+    
+    `;
     // return this.visitChildren(ctx);
+  }
+
+  parseIfStatement(ctx) {
+    let arrResult = [];
+    for (let i = 2; i < 7; i += 2) {
+      arrResult.push(ctx.getChild(i).getText());
+    }
+    return arrResult;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForStatement.
   visitForStatement(ctx) {
     console.log("visitForStatement");
-    return this.visitChildren(ctx);
+    console.log(this.parseIfStatement(ctx));
+    // console.log(ctx.statement().getText());
+    // console.log(this.visitFormalParameterList(ctx.getChild()));
+    // console.log(ctx.expressionSequence().getText());
+    // console.log(this.getMethods(ctx));
+    return `${this.visitChildren(ctx.statement())}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForVarStatement.
