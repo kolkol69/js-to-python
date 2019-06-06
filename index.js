@@ -10,13 +10,9 @@ const PythonGenerator = require("./codegeneration/PythonGenerator.1");
 // }
 // `;
 const input = `
-  if(c){
-    zmienna = 17
+  for(i = 0; i < 2; i++){
+    a = i
   }
-  if(a){
-    cos = 4
-  }
-  
 `;
 
 const chars = new antlr4.InputStream(input);

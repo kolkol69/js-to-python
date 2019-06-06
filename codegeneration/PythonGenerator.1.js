@@ -213,7 +213,7 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#block.
   visitBlock(ctx) {
     console.log("visitBlock");
-    return `${this.visit(ctx.statementList())} }\n`;
+    return `${this.visit(ctx.statementList())}\n`;
 
   }
 
@@ -297,18 +297,18 @@ class Visitor extends ECMAScriptVisitor {
     for (let i = 2; i < 7; i += 2) {
       arrResult.push(ctx.getChild(i).getText());
     }
+    arrResult[0] = arrResult[0].match(/\d+/g).map(Number)[0];
+    arrResult[1] = arrResult[1].match(/\d+/g).map(Number)[0];
     return arrResult;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForStatement.
   visitForStatement(ctx) {
     console.log("visitForStatement");
-    // console.log(this.parseIfStatement(ctx));
-    // console.log(ctx.statement().getText());
-    // console.log(this.visitFormalParameterList(ctx.getChild()));
-    // console.log(ctx.expressionSequence().getText());
-    // console.log(this.getMethods(ctx));
-    return `${this.visitChildren(ctx.statement())}`;
+    const forArray = this.parseIfStatement(ctx);
+    const rangeStart = forArray[0];
+    const rangeEnd = forArray[1];
+    return `for i in range(${rangeStart},${rangeEnd}):\n\t${this.visitChildren(ctx.statement())}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForVarStatement.
