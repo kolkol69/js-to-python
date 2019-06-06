@@ -3,21 +3,21 @@ const ECMAScriptLexer = require("./lib/ECMAScriptLexer.js");
 const ECMAScriptParser = require("./lib/ECMAScriptParser.js");
 const PythonGenerator = require("./codegeneration/PythonGenerator.1");
 
+// const input = `
+//   let a,b,c = d
+//   var f = 9
+//   var g = d
+// }
+// `;
 const input = `
-for (i = 0; i < 10; i++) { 
-  text += 1
-}
+  if(c){
+    zmienna = 17
+  }
+  if(a){
+    cos = 4
+  }
+  
 `;
-
-/**
- * 
- * 
-    for x in fruits:
-      print(x)
-
-    for x in range(6):
-      print(x)
- */
 
 const chars = new antlr4.InputStream(input);
 const lexer = new ECMAScriptLexer.ECMAScriptLexer(chars);
@@ -30,9 +30,9 @@ const tree = parser.program();
 // const tree = parser.expressionSequence();
 
 // console.log(tree.toStringTree(parser.ruleNames));
-console.log("JavaScript input:");
-console.log(input);
 console.log("\n");
 const output = new PythonGenerator().start(tree);
+console.log("JavaScript input:");
+console.log(input);
 console.log("\nPython output:");
 console.log("", output);
