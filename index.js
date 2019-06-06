@@ -10,8 +10,57 @@ const PythonGenerator = require("./codegeneration/PythonGenerator.1");
 // }
 // `;
 const input = `
-  for(i = 0; i < 2; i++){
-    a = i
+for(var i = 0; i < 4; i++){
+  a = i
+  a = i
+  a = i
+  c = a
+  if(lol){
+    to=lol
+  }
+  if(a){
+    b=a
+    b=a
+    b=a
+    while(true){
+      c = 'lol'
+      c = 'chyba'
+      c = 'dziala'
+    }
+  }
+  
+}
+`;
+
+`
+  ===== python =====
+  if a: 
+    b = a
+    z = 'lol'
+    if b:
+      c = d
+  ===== js =====
+  if(a){
+    b = a
+    z = 'lol'
+    if(b){
+      c = d
+    }
+  }
+
+  ===== python =====
+  if a: 
+    b = a
+    z = 'lol'
+  if b:
+    c = d
+  ===== js =====
+  if(a){
+    b = a
+    z = 'lol'
+  }
+  if(b){
+    c = d
   }
 `;
 

@@ -19,16 +19,37 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   start(ctx) {
-    this.indentSize = '\t';
-    this.indentCounter = 1;
+    this.indentSize = "\t";
+    this.indentCounter = 0;
+    this.identIndex = 0;
+    this.isIdentsFound = false;
     return this.visitExpressionSequence(ctx);
   }
-  getIndents(amount){
-    let result = '';
-    for(let i = 0; i<amount; i++){
-      result+= '\t'
+  getIndents() {
+    let result = "";
+    for (let i = 0; i < this.indentCounter; i++) {
+      result += "\t";
     }
     return result;
+  }
+
+  findIndents(ctx) {
+    if (!this.isIdentsFound) {
+      let str = ctx.getChild(0).getText();
+      console.log(">>>TXT", str);
+      this.indentsArray = [];
+      for (let i = 0; i < str.length; i++) {
+        if (str[i] === "{" || str[i] === "}") this.indentsArray.push(str[i]);
+      }
+      this.isIdentsFound = !this.isIdentsFound;
+    }
+  }
+
+  calcIndents() {
+    this.indentsArray[this.identIndex] == "{"
+      ? this.indentCounter++
+      : this.indentCounter--;
+    this.identIndex++;
   }
 
   /**
@@ -41,10 +62,8 @@ class Visitor extends ECMAScriptVisitor {
     let code = "";
 
     for (let i = 0; i < ctx.getChildCount(); i++) {
-      // console.log(">>>code", this.visit(ctx.getChild(i)));
       code += this.visit(ctx.getChild(i));
     }
-
     return code.trim();
   }
 
@@ -101,15 +120,9 @@ class Visitor extends ECMAScriptVisitor {
    */
   visitPropertyExpressionAssignment(ctx) {
     console.log("visitPropertyExpressionAssignment");
-    // console.log(ctx.getText()); // Return the text of all tokens in the stream
-    // console.log(ctx.getChildCount()); // How many children are there? If there is none, then this node represents a leaf node
-    // console.log(ctx.getChild(0).getText()); // console.log(ctx.propertyName().getText()) Property 'x'
-    // console.log(ctx.getChild(1).getText()); // ':'
-    // console.log(ctx.getChild(2).getText()); // console.log(ctx.f().getText()) Value '1'
-    // {x : new Number(1)}
-    const key = this.visit(ctx.propertyName()); // ctx.getChild(0)
-    const value = this.visit(ctx.singleExpression()); // ctx.getChild(2)
-    return `'${key}': ${value}`; // { x : 1}
+    const key = this.visit(ctx.propertyName());
+    const value = this.visit(ctx.singleExpression());
+    return `'${key}': ${value}`;
   }
 
   /**
@@ -120,15 +133,11 @@ class Visitor extends ECMAScriptVisitor {
    */
   visitFunctionExpression(ctx) {
     console.log("visitFunctionExpression");
-    // console.log(ctx.children[0], "this.visitChildren(ctx)");
-    // console.log(Object.values(ctx), "this.visitChildren(ctx)");
-    // console.log(this.visitChildren(ctx), "this.visitChildren(ctx)");
-
     const functionName = ctx.getChild(1).getText();
     const params = this.visit(ctx.formalParameterList());
     const body = this.visit(ctx.functionBody());
-
-    return `def ${functionName}(${params}):\n${this.getIndents(this.indentCounter)}${body}`;
+    //${this.getIndents(this.indentCounter)
+    return `def ${functionName}(${params}):\n}${body}`;
   }
   /**
    * Visits Formal Parameter List
@@ -137,7 +146,7 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFormalParameterList(ctx) {
-    console.log("visitFormalParameterList", ctx.getChild(0).getText());
+    console.log("visitFormalParameterList");
     return this.visitChildren(ctx);
   }
 
@@ -148,8 +157,8 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitFunctionBody(ctx) {
+    this.calcIndents();
     console.log("visitFunctionBody");
-    this.indentCounter++;
     return this.visitChildren(ctx);
   }
 
@@ -172,7 +181,6 @@ class Visitor extends ECMAScriptVisitor {
    * @returns {string}
    */
   visitNumberExpression(ctx) {
-    // console.log("visitNumberExpression", getMethods(ctx));
     const argumentList = ctx.arguments().argumentList();
 
     if (argumentList === null || argumentList.getChildCount() !== 1) {
@@ -194,7 +202,6 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#sourceElements.
   visitSourceElements(ctx) {
     console.log("visitSourceElements");
-    this.indentCounter--;
     return this.visitChildren(ctx);
   }
 
@@ -206,15 +213,44 @@ class Visitor extends ECMAScriptVisitor {
 
   // Visit a parse tree produced by ECMAScriptParser#statement.
   visitStatement(ctx) {
-    console.log("visitStatement");
-    return `\n${this.getIndents(this.indentCounter)}${this.visitChildren(ctx)}`;
+    console.log("visitStatement", this.indentCounter);
+    // console.log(ctx.getChild(0).getText());
+    if (
+      ctx
+        .getChild(0)
+        .getText()
+        .indexOf("if") > -1
+    ) {
+      if (this.indentsArray[this.identIndex] == "}") {
+        this.indentCounter--;
+        this.identIndex++;
+      }
+
+      return `\n${this.getIndents()}${this.visitChildren(ctx)}\t`;
+    }
+    return `\n${this.getIndents()}${this.visitChildren(ctx)}`;
+  }
+
+  /*
+  calcIndents() {
+    this.indentsArray[this.identIndex] == "{"
+      ? this.indentCounter++
+      : this.indentCounter--;
+    this.identIndex++;
+  }
+  */
+
+  calcIndents() {
+    this.indentsArray[this.identIndex] == "{"
+      ? this.indentCounter++
+      : this.indentCounter--;
+    this.identIndex++;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#block.
   visitBlock(ctx) {
     console.log("visitBlock");
-    return `${this.visit(ctx.statementList())}\n`;
-
+    return `${this.visit(ctx.statementList())}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#statementList.
@@ -244,12 +280,7 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#initialiser.
   visitInitialiser(ctx) {
     console.log("visitInitialiser");
-    // console.log(ctx.getChild(0).getText());
-    // console.log(this.getMethods(ctx));
-    // console.log(ctx.singleExpression().getText());
-
     return this.visitChildren(ctx);
-    // return `${this.visit(ctx.singleExpression())} \n`
   }
 
   // Visit a parse tree produced by ECMAScriptParser#emptyStatement.
@@ -266,12 +297,11 @@ class Visitor extends ECMAScriptVisitor {
 
   // Visit a parse tree produced by ECMAScriptParser#ifStatement.
   visitIfStatement(ctx) {
-    console.log("visitIfStatement");
-    this.indentCounter++;
-    return `${
-      ctx
+    console.log("visitIfStatement", this.indentCounter);
+    this.calcIndents();
+    return `${ctx
       .getChild(0)
-      .getText()} ${ctx.expressionSequence().getText()}${this.getIndents(this.indentCounter)}${this.visit(
+      .getText()} ${ctx.expressionSequence().getText()}:${this.visit(
       ctx.statement()
     )}`;
   }
@@ -284,17 +314,26 @@ class Visitor extends ECMAScriptVisitor {
 
   // Visit a parse tree produced by ECMAScriptParser#WhileStatement.
   visitWhileStatement(ctx) {
-    console.log("visitWhileStatement");
+    console.log("visitWhileStatement", this.indentCounter);
+    this.calcIndents();
     return `while ${ctx.expressionSequence().getText()}:${this.visit(
       ctx.statement()
     )}
-    
     `;
   }
 
-  parseIfStatement(ctx) {
+  parseForStatement(ctx) {
     let arrResult = [];
     for (let i = 2; i < 7; i += 2) {
+      arrResult.push(ctx.getChild(i).getText());
+    }
+    arrResult[0] = arrResult[0].match(/\d+/g).map(Number)[0];
+    arrResult[1] = arrResult[1].match(/\d+/g).map(Number)[0];
+    return arrResult;
+  }
+  parseForVarStatement(ctx) {
+    let arrResult = [];
+    for (let i = 3; i < 8; i += 2) {
       arrResult.push(ctx.getChild(i).getText());
     }
     arrResult[0] = arrResult[0].match(/\d+/g).map(Number)[0];
@@ -304,17 +343,29 @@ class Visitor extends ECMAScriptVisitor {
 
   // Visit a parse tree produced by ECMAScriptParser#ForStatement.
   visitForStatement(ctx) {
-    console.log("visitForStatement");
-    const forArray = this.parseIfStatement(ctx);
+    this.calcIndents();
+    console.log("visitForStatement", this.indentCounter);
+
+    const forArray = this.parseForStatement(ctx);
     const rangeStart = forArray[0];
     const rangeEnd = forArray[1];
-    return `for i in range(${rangeStart},${rangeEnd}):\n\t${this.visitChildren(ctx.statement())}`;
+    return `for i in range(${rangeStart},${rangeEnd}):${this.visitChildren(
+      ctx.statement()
+    )}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForVarStatement.
   visitForVarStatement(ctx) {
-    console.log("visitForVarStatement");
-    return this.visitChildren(ctx);
+    this.calcIndents();
+    console.log("visitForStatement", this.indentCounter);
+
+    const forArray = this.parseForVarStatement(ctx);
+    const rangeStart = forArray[0];
+    const rangeEnd = forArray[1];
+    return `
+    for i in range(${rangeStart},${rangeEnd}):\n\t${this.visitChildren(
+      ctx.statement()
+    )}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#ForInStatement.
@@ -490,6 +541,7 @@ class Visitor extends ECMAScriptVisitor {
     console.log("visitExpressionSequence");
     // console.log(this.getMethods(ctx) )
     // console.log(ctx.getChild(0).getText())
+    this.findIndents(ctx);
     return this.visitChildren(ctx);
   }
 
@@ -598,11 +650,6 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#EqualityExpression.
   visitEqualityExpression(ctx) {
     console.log("visitEqualityExpression");
-    // console.log(ctx.getChild(1).getText())
-    // return '=='
-    // console.log(ctx.getChild(0).getText());
-    // console.log(ctx.getChild(1).getText());
-    // console.log(ctx.getChild(2).getText());
     return this.visitChildren(ctx);
   }
 
@@ -724,7 +771,6 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#numericLiteral.
   visitNumericLiteral(ctx) {
     console.log("visitNumericLiteral");
-    console.log(this.indentCounter);
     return this.visitChildren(ctx);
   }
 
