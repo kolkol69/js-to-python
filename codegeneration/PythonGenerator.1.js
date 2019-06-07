@@ -137,7 +137,10 @@ class Visitor extends ECMAScriptVisitor {
     const params = this.visit(ctx.formalParameterList());
     const body = this.visit(ctx.functionBody());
     //${this.getIndents(this.indentCounter)
-    return `def ${functionName}(${params}):\n}${body}`;
+    return `
+    def ${functionName}(${params}):
+    \t${body}
+    `;
   }
   /**
    * Visits Formal Parameter List
