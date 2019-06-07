@@ -352,7 +352,7 @@ class Visitor extends ECMAScriptVisitor {
     const forArray = this.parseForStatement(ctx);
     const rangeStart = forArray[0];
     const rangeEnd = forArray[1];
-    return `for i in range(${rangeStart},${rangeEnd}):${this.visitChildren(
+    return `for i in range(${rangeStart},${rangeEnd}):\n${this.getIndents()}${this.visitChildren(
       ctx.statement()
     )}`;
   }
@@ -366,7 +366,7 @@ class Visitor extends ECMAScriptVisitor {
     const rangeStart = forArray[0];
     const rangeEnd = forArray[1];
     return `
-    for i in range(${rangeStart},${rangeEnd}):\n\t${this.visitChildren(
+    for i in range(${rangeStart},${rangeEnd}):\n${this.getIndents()}${this.visitChildren(
       ctx.statement()
     )}`;
   }
