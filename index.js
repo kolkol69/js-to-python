@@ -14,7 +14,7 @@ function showCaseFunction(params){
     }
     if(gg > 100){
       b = gg + a
-      c = a * 10 \ gg
+      c = a * 10 / gg
       while(gg != 10){
         gg--
         var g = gg - b;
