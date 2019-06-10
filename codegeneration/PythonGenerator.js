@@ -240,13 +240,13 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#block.
   visitBlock(ctx) {
     console.log("visitBlock");
-    return `${this.visit(ctx.statementList())}`;
+    return `\t${this.visit(ctx.statementList())}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#statementList.
   visitStatementList(ctx) {
     console.log("visitStatementList");
-    return this.visitChildren(ctx);
+    return `${this.visitChildren(ctx)}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#variableStatement.
@@ -385,7 +385,7 @@ class Visitor extends ECMAScriptVisitor {
   // Visit a parse tree produced by ECMAScriptParser#returnStatement.
   visitReturnStatement(ctx) {
     console.log("visitReturnStatement");
-    return this.visitChildren(ctx);
+    return `return ${this.visit(ctx.expressionSequence())}`
   }
 
   // Visit a parse tree produced by ECMAScriptParser#withStatement.
@@ -438,20 +438,20 @@ class Visitor extends ECMAScriptVisitor {
 
   // Visit a parse tree produced by ECMAScriptParser#tryStatement.
   visitTryStatement(ctx) {
-    console.log("visitTryStatement");
-    return this.visitChildren(ctx);
+    console.log("visitTryStatement", ctx.getText());
+    return `try:\n\t${ctx.getChild(1).getText().replace(/{|}/g,'')}\n${this.visit(ctx.catchProduction())}\n${this.visit(ctx.finallyProduction())}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#catchProduction.
   visitCatchProduction(ctx) {
     console.log("visitCatchProduction");
-    return this.visitChildren(ctx);
+    return `except ${ctx.getChild(2).getText().replace(/{|}/g,'')}:\n${this.visit(ctx.getChild(4))}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#finallyProduction.
   visitFinallyProduction(ctx) {
     console.log("visitFinallyProduction");
-    return this.visitChildren(ctx);
+    return `finally:\n${this.visit(ctx.getChild(1))}`;
   }
 
   // Visit a parse tree produced by ECMAScriptParser#debuggerStatement.

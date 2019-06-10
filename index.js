@@ -4,24 +4,34 @@ const ECMAScriptParser = require("./lib/ECMAScriptParser.js");
 const PythonGenerator = require("./codegeneration/PythonGenerator");
 
 const input = `
-function showCaseFunction(params){
-  for(var i = 0; i < 4; i++){
-    b = i
-    c += i
-    let gg = 0;
-    if(gg > 10){
-      to=gg + 1
-    }
-    if(gg > 100){
-      b = gg + a
-      c = a * 10 / gg
-      while(gg != 10){
-        gg--
-        var g = gg - b;
-        c = 'dziala'
-      }
-    }
-  }
+
+
+// function showCaseFunction(params){
+//   for(var i = 0; i < 4; i++){
+//     b = i
+//     c += i
+//     let gg = 0;
+//     if(gg > 10){
+//       to=gg + 1
+//     }
+//     if(gg > 100){
+//       b = gg + a
+//       c = a * 10 / gg
+//       while(gg != 10){
+//         gg--
+//         var g = gg - b;
+//         c = 'dziala'
+//       }
+//     }
+//   }
+// }
+//
+try {
+    nonExistingFunction()
+} catch(error) {
+    var a = 5
+} finally {
+    return false
 }
 `;
 
